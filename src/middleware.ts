@@ -1,15 +1,15 @@
-import { auth } from "@/lib/auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-export default auth((req) => {
-  const token = req.auth;
+export async function middleware(req: NextRequest) {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const path = req.nextUrl.pathname;
 
   if (!token) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  const role = (token.user as any)?.role;
+  const role = (token as any).role;
 
   if (path.startsWith("/admin") && role !== "ADMIN") {
     return NextResponse.redirect(new URL("/login", req.url));
@@ -22,7 +22,7 @@ export default auth((req) => {
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ["/admin/:path*", "/procurement/:path*", "/vendor/:path*"],
