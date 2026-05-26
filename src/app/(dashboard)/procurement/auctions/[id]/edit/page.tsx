@@ -1,3 +1,4 @@
-export default function EditAuctionPage({ params }: { params: { id: string } }) {
-  return <h1 className="text-2xl font-bold">Edit Auction: {params.id}</h1>;
+export default async function EditAuctionPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <h1 className="text-2xl font-bold">Edit Auction: {id}</h1>;
 }

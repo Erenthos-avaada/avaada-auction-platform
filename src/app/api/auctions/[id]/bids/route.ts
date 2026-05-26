@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
 
-// GET /api/auctions/[id]/bids - Get all bids for an auction
-export async function GET(_: Request, { params }: { params: { id: string } }) {
-  // TODO: Fetch bids sorted by amount ASC
-  return NextResponse.json({ bids: [], auctionId: params.id });
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return NextResponse.json({ bids: [], auctionId: id });
 }
 
-// POST /api/auctions/[id]/bids - Place a new bid
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const body = await request.json();
-  // TODO: Validate bid lower than current lowest, save to DB, trigger auto-extend
-  return NextResponse.json({ bid: { auctionId: params.id, ...body } }, { status: 201 });
+  return NextResponse.json({ bid: { auctionId: id, ...body } }, { status: 201 });
 }

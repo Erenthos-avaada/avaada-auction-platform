@@ -1,24 +1,28 @@
-import { withAuth } from "next-auth/middleware";
+import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
-    const path = req.nextUrl.pathname;
+export default auth((req) => {
+  const token = req.auth;
+  const path = req.nextUrl.pathname;
 
-    if (path.startsWith("/admin") && token?.role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-    if (path.startsWith("/procurement") && !["ADMIN", "PROCUREMENT"].includes(token?.role as string)) {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-    if (path.startsWith("/vendor") && token?.role !== "VENDOR") {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-    return NextResponse.next();
-  },
-  { callbacks: { authorized: ({ token }) => !!token } }
-);
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  const role = (token.user as any)?.role;
+
+  if (path.startsWith("/admin") && role !== "ADMIN") {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+  if (path.startsWith("/procurement") && !["ADMIN", "PROCUREMENT"].includes(role)) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+  if (path.startsWith("/vendor") && role !== "VENDOR") {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  return NextResponse.next();
+});
 
 export const config = {
   matcher: ["/admin/:path*", "/procurement/:path*", "/vendor/:path*"],

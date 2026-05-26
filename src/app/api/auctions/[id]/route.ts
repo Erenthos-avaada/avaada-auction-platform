@@ -1,20 +1,17 @@
 import { NextResponse } from "next/server";
 
-// GET /api/auctions/[id]
-export async function GET(_: Request, { params }: { params: { id: string } }) {
-  // TODO: Fetch single auction by ID
-  return NextResponse.json({ id: params.id });
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return NextResponse.json({ id });
 }
 
-// PATCH /api/auctions/[id]
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const body = await request.json();
-  // TODO: Update auction
-  return NextResponse.json({ id: params.id, ...body });
+  return NextResponse.json({ id, ...body });
 }
 
-// DELETE /api/auctions/[id]
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
-  // TODO: Delete / cancel auction
-  return NextResponse.json({ deleted: params.id });
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return NextResponse.json({ deleted: id });
 }
