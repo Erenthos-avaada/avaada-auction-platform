@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  PROCUREMENT
+  VENDOR
+}
+
+enum VendorStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  BLACKLISTED
+}
+
+enum AuctionStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+  CANCELLED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  role          Role      @default(VENDOR)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  vendor        Vendor?
+  notifications Notification[]
+  auctions      Auction[]       @relation("CreatedBy")
+}
+
+model Vendor {
+  id            String       @id @default(cuid())
+  userId        String       @unique
+  user          User         @relation(fields: [userId], references: [id])
+  companyName   String
+  gstNumber     String?
+  panNumber     String?
+  bankName      String?
+  bankAccount   String?
+  bankIfsc      String?
+  categories    String[]
+  status        VendorStatus @default(PENDING)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  bids          Bid[]
+  invites       AuctionInvite[]
+}
+
+model Auction {
+  id               String        @id @default(cuid())
+  title            String
+  description      String?
+  category         String
+  quantity         Float
+  unit             String
+  deliveryTerms    String?
+  startTime        DateTime
+  endTime          DateTime
+  autoExtendMins   Int           @default(10)
+  minDecrement     Float         @default(0)
+  status           AuctionStatus @default(DRAFT)
+  createdById      String
+  createdBy        User          @relation("CreatedBy", fields: [createdById], references: [id])
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  bids             Bid[]
+  documents        AuctionDocument[]
+  invites          AuctionInvite[]
+}
+
+model Bid {
+  id         String   @id @default(cuid())
+  auctionId  String
+  auction    Auction  @relation(fields: [auctionId], references: [id])
+  vendorId   String
+  vendor     Vendor   @relation(fields: [vendorId], references: [id])
+  amount     Float
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([auctionId, amount])
+}
+
+model AuctionDocument {
+  id         String   @id @default(cuid())
+  auctionId  String
+  auction    Auction  @relation(fields: [auctionId], references: [id])
+  fileName   String
+  fileUrl    String
+  fileSize   Int?
+  uploadedAt DateTime @default(now())
+}
+
+model AuctionInvite {
+  id         String   @id @default(cuid())
+  auctionId  String
+  auction    Auction  @relation(fields: [auctionId], references: [id])
+  vendorId   String
+  vendor     Vendor   @relation(fields: [vendorId], references: [id])
+  sentAt     DateTime @default(now())
+
+  @@unique([auctionId, vendorId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+}
