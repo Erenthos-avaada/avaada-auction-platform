@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/notifications - Get notifications for logged-in user
 export async function GET() {
   // TODO: Fetch unread notifications for current user

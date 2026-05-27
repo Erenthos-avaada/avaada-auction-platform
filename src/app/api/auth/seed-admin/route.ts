@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
+export const dynamic = "force-dynamic";
+
 // ONE-TIME USE: Creates first admin if none exists.
 // Delete or disable this route after first use.
 export async function POST(request: Request) {

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 // POST /api/uploads - Upload file to Vercel Blob
 export async function POST(request: Request) {
   // TODO: Stream file to Vercel Blob, return URL

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/auctions - List all auctions
 export async function GET() {
   // TODO: Fetch auctions from DB with filters
