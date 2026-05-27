@@ -1,27 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { jwtVerify } from "jose";
+
+const secret = new TextEncoder().encode(
+  process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "fallback-secret"
+);
 
 export async function middleware(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const path = req.nextUrl.pathname;
+  const token = req.cookies.get("auth-token")?.value;
 
   if (!token) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  const role = (token as any).role;
+  try {
+    const { payload } = await jwtVerify(token, secret);
+    const role = payload.role as string;
 
-  if (path.startsWith("/admin") && role !== "ADMIN") {
+    if (path.startsWith("/admin") && role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+    if (path.startsWith("/procurement") && !["ADMIN", "PROCUREMENT"].includes(role)) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+    if (path.startsWith("/vendor") && role !== "VENDOR") {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+    return NextResponse.next();
+  } catch {
     return NextResponse.redirect(new URL("/login", req.url));
   }
-  if (path.startsWith("/procurement") && !["ADMIN", "PROCUREMENT"].includes(role)) {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
-  if (path.startsWith("/vendor") && role !== "VENDOR") {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
-
-  return NextResponse.next();
 }
 
 export const config = {

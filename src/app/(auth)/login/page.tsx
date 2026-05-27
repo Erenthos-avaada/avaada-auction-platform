@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -16,23 +15,30 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const res = await signIn("credentials", {
-      email, password, redirect: false,
-    });
-    setLoading(false);
-    if (res?.error) {
-      setError("Invalid email or password. Please try again.");
-    } else {
+
+    try {
+      const res = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setError(data.error || "Invalid email or password. Please try again.");
+        setLoading(false);
+        return;
+      }
       router.push("/");
+      router.refresh();
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setLoading(false);
     }
   };
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", padding: "24px" }}>
-      {/* Geometric background */}
       <div className="geo-bg" />
-
-      {/* Decorative grid lines */}
       <div style={{
         position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
         backgroundImage: "linear-gradient(rgba(201,168,76,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,0.03) 1px, transparent 1px)",
@@ -40,8 +46,6 @@ export default function LoginPage() {
       }} />
 
       <div style={{ width: "100%", maxWidth: "440px", position: "relative", zIndex: 1 }}>
-
-        {/* Logo / Brand */}
         <div className="animate-fadeUp" style={{ textAlign: "center", marginBottom: "40px" }}>
           <div style={{
             display: "inline-flex", alignItems: "center", justifyContent: "center",
@@ -63,16 +67,10 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Card */}
         <div className="glass animate-fadeUp delay-100" style={{ borderRadius: "20px", padding: "40px", boxShadow: "0 24px 80px rgba(0,0,0,0.5)" }}>
-
           <div style={{ marginBottom: "28px" }}>
-            <h2 style={{ fontSize: "1.3rem", fontWeight: 600, color: "var(--white)", marginBottom: "6px" }}>
-              Welcome back
-            </h2>
-            <p style={{ color: "var(--slate)", fontSize: "0.875rem" }}>
-              Sign in to access the auction dashboard
-            </p>
+            <h2 style={{ fontSize: "1.3rem", fontWeight: 600, color: "var(--white)", marginBottom: "6px" }}>Welcome back</h2>
+            <p style={{ color: "var(--slate)", fontSize: "0.875rem" }}>Sign in to access the auction dashboard</p>
           </div>
 
           {error && (
@@ -93,34 +91,22 @@ export default function LoginPage() {
               <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--slate)", marginBottom: "8px" }}>
                 Email Address
               </label>
-              <input
-                type="email"
-                className="input-gold"
-                placeholder="you@company.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-              />
+              <input type="email" className="input-gold" placeholder="you@company.com"
+                value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
 
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                <label style={{ fontSize: "0.78rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--slate)" }}>
-                  Password
-                </label>
-              </div>
+              <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--slate)", marginBottom: "8px" }}>
+                Password
+              </label>
               <div style={{ position: "relative" }}>
-                <input
-                  type={showPass ? "text" : "password"}
-                  className="input-gold"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  style={{ paddingRight: "44px" }}
-                />
-                <button type="button" onClick={() => setShowPass(!showPass)}
-                  style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--slate)", padding: 0 }}>
+                <input type={showPass ? "text" : "password"} className="input-gold"
+                  placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)}
+                  required style={{ paddingRight: "44px" }} />
+                <button type="button" onClick={() => setShowPass(!showPass)} style={{
+                  position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)",
+                  background: "none", border: "none", cursor: "pointer", color: "var(--slate)", padding: 0
+                }}>
                   {showPass ? (
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                   ) : (
@@ -131,19 +117,11 @@ export default function LoginPage() {
             </div>
 
             <button type="submit" className="btn-gold" disabled={loading} style={{ marginTop: "8px" }}>
-              {loading ? (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "spin-slow 1s linear infinite" }}>
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                  </svg>
-                  Signing in...
-                </>
-              ) : "Sign In"}
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
           <div className="divider" style={{ margin: "24px 0" }}>or</div>
-
           <p style={{ textAlign: "center", fontSize: "0.875rem", color: "var(--slate)" }}>
             Are you a vendor?{" "}
             <Link href="/register" style={{ color: "var(--gold)", textDecoration: "none", fontWeight: 500 }}>
@@ -152,7 +130,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Footer */}
         <p className="animate-fadeUp delay-300" style={{ textAlign: "center", marginTop: "24px", fontSize: "0.75rem", color: "var(--slate)", opacity: 0.6 }}>
           © {new Date().getFullYear()} Avaada Group · Secure Procurement Platform
         </p>
