@@ -1,11 +1,34 @@
-// TODO: Add session check + Sidebar + Header
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { jwtVerify } from "jose";
+import Sidebar from "@/components/layout/Sidebar";
+import Header from "@/components/layout/Header";
+
+const secret = new TextEncoder().encode(
+  process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "fallback-secret"
+);
+
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth-token")?.value;
+  if (!token) redirect("/login");
+
+  let payload: any;
+  try {
+    const verified = await jwtVerify(token, secret);
+    payload = verified.payload;
+  } catch {
+    redirect("/login");
+  }
+
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* <Sidebar /> */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* <Header /> */}
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--navy)" }}>
+      <Sidebar role={payload.role} name={payload.name as string} email={payload.email as string} />
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <Header role={payload.role} name={payload.name as string} />
+        <main style={{ flex: 1, overflowY: "auto", padding: "28px 32px" }}>
+          {children}
+        </main>
       </div>
     </div>
   );
