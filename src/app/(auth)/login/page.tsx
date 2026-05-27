@@ -1,10 +1,8 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -23,17 +21,21 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
-      if (!res.ok || !data.success) {
-        setError(data.error || "Invalid email or password. Please try again.");
-        setLoading(false);
+
+      if (data.success) {
+        // Hard redirect — ensures cookie is sent with next request
+        if (data.role === "ADMIN") window.location.href = "/admin";
+        else if (data.role === "PROCUREMENT") window.location.href = "/procurement";
+        else if (data.role === "VENDOR") window.location.href = "/vendor";
+        else window.location.href = "/";
         return;
       }
-      router.push("/");
-      router.refresh();
+
+      setError(data.error || "Invalid email or password.");
     } catch {
       setError("Something went wrong. Please try again.");
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   return (
@@ -117,7 +119,15 @@ export default function LoginPage() {
             </div>
 
             <button type="submit" className="btn-gold" disabled={loading} style={{ marginTop: "8px" }}>
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? (
+                <span style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                    style={{ animation: "spin 1s linear infinite" }}>
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                  </svg>
+                  Signing in...
+                </span>
+              ) : "Sign In"}
             </button>
           </form>
 
