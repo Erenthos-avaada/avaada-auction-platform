@@ -2,8 +2,5 @@
   "framework": "nextjs",
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
-  "installCommand": "npm install --legacy-peer-deps",
-  "engines": {
-    "node": "20.x"
-  }
+  "installCommand": "npm install --legacy-peer-deps"
 }
