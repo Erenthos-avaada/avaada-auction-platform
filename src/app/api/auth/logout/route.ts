@@ -5,6 +5,12 @@ export const dynamic = "force-dynamic";
 
 export async function POST() {
   const cookieStore = await cookies();
-  cookieStore.delete("auth-token");
-  return NextResponse.redirect(new URL("/login", process.env.NEXTAUTH_URL || "https://avaada-auction-platform.vercel.app"));
+  cookieStore.set("auth-token", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 0,
+    path: "/",
+  });
+  return NextResponse.json({ success: true });
 }

@@ -104,20 +104,24 @@ export default function Sidebar({ role, name, email }: { role: string; name: str
             <p style={{ fontSize: "0.7rem", color: "var(--slate)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{email}</p>
           </div>
         </div>
-        <form action="/api/auth/logout" method="POST" style={{ marginTop: "8px" }}>
-          <button type="submit" style={{
-            width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid rgba(224,82,82,0.2)",
-            background: "transparent", color: "#e05252", fontSize: "0.78rem", fontWeight: 500,
+        <button
+          onClick={async () => {
+            await fetch("/api/auth/logout", { method: "POST" });
+            window.location.href = "/login";
+          }}
+          style={{
+            marginTop: "8px", width: "100%", padding: "8px", borderRadius: "8px",
+            border: "1px solid rgba(224,82,82,0.2)", background: "transparent",
+            color: "#e05252", fontSize: "0.78rem", fontWeight: 500,
             cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
             transition: "all 0.2s ease",
           }}
-            onMouseEnter={e => (e.currentTarget.style.background = "rgba(224,82,82,0.1)")}
-            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-            Sign Out
-          </button>
-        </form>
+          onMouseEnter={e => (e.currentTarget.style.background = "rgba(224,82,82,0.1)")}
+          onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          Sign Out
+        </button>
       </div>
     </aside>
   );
