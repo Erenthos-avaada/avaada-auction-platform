@@ -14,22 +14,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-        // TODO: Re-enable once Prisma is connected
-        // const user = await prisma.user.findUnique({ where: { email: credentials.email as string } });
-        // if (!user) return null;
-        // const valid = await bcrypt.compare(credentials.password as string, user.password);
-        // if (!valid) return null;
-        // return { id: user.id, email: user.email, name: user.name ?? "", role: user.role };
-        return null;
+        const user = await prisma.user.findUnique({ where: { email: credentials.email as string } });
+        if (!user) return null;
+        const valid = await bcrypt.compare(credentials.password as string, user.password);
+        if (!valid) return null;
+        return { id: user.id, email: user.email, name: user.name ?? "", role: user.role };
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = (user as any).role;
-      }
+      if (user) { token.id = user.id; token.role = (user as any).role; }
       return token;
     },
     async session({ session, token }) {
