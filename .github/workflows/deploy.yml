@@ -1,4 +1,0 @@
-# Deployment is handled automatically by Vercel on every push to main.
-# This workflow is intentionally disabled.
-name: Deploy to Vercel
-on: []
