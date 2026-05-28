@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   if (secret !== process.env.SEED_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const hashed = await bcrypt.hash(newPassword, 12);
+  const hashed = await bcrypt.hash(newPassword, 10);
   await prisma.user.update({
     where: { email: "admin@avaada.com" },
     data: { password: hashed },

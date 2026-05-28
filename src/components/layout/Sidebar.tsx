@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useTransition } from "react";
 
 const NAV: Record<string, { href: string; label: string; icon: string }[]> = {
   ADMIN: [
@@ -16,10 +17,10 @@ const NAV: Record<string, { href: string; label: string; icon: string }[]> = {
     { href: "/procurement/reports",      label: "Reports",     icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
   ],
   VENDOR: [
-    { href: "/vendor",          label: "Dashboard",    icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
-    { href: "/vendor/auctions", label: "My Auctions",  icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
-    { href: "/vendor/my-bids",  label: "My Bids",      icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
-    { href: "/vendor/profile",  label: "My Profile",   icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
+    { href: "/vendor",          label: "Dashboard",  icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
+    { href: "/vendor/auctions", label: "My Auctions", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
+    { href: "/vendor/my-bids",  label: "My Bids",    icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
+    { href: "/vendor/profile",  label: "My Profile", icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
   ],
 };
 
@@ -32,16 +33,23 @@ function Icon({ d }: { d: string }) {
 }
 
 export default function Sidebar({ role, name, email }: { role: string; name: string; email: string }) {
-  const pathname = usePathname();
-  const links    = NAV[role] || [];
+  const pathname   = usePathname();
+  const router     = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const links = NAV[role] || [];
 
   const isActive = (href: string) =>
     href === "/admin" || href === "/procurement" || href === "/vendor"
       ? pathname === href
       : pathname.startsWith(href);
 
+  const handleNav = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    startTransition(() => { router.push(href); });
+  };
+
   return (
-    <aside style={{ width: "220px", minWidth: "220px", height: "100vh", background: "var(--bg2)", borderRight: "1px solid var(--border)", display: "flex", flexDirection: "column" }}>
+    <aside style={{ width: "220px", minWidth: "220px", height: "100vh", background: "var(--bg2)", borderRight: "1px solid var(--border)", display: "flex", flexDirection: "column", transition: "opacity 0.15s" }}>
 
       {/* Brand */}
       <div style={{ padding: "20px 16px 16px", borderBottom: "1px solid var(--border)" }}>
@@ -59,12 +67,27 @@ export default function Sidebar({ role, name, email }: { role: string; name: str
       {/* Nav */}
       <nav style={{ flex: 1, padding: "12px 10px", display: "flex", flexDirection: "column", gap: "2px", overflowY: "auto" }}>
         <p style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text3)", padding: "0 6px", marginBottom: "6px", marginTop: "2px" }}>Menu</p>
-        {links.map(l => (
-          <Link key={l.href} href={l.href} className={`nav-link ${isActive(l.href) ? "active" : ""}`}>
-            <Icon d={l.icon} />
-            {l.label}
-          </Link>
-        ))}
+        {links.map(l => {
+          const active = isActive(l.href);
+          return (
+            <Link
+              key={l.href}
+              href={l.href}
+              onClick={e => handleNav(e, l.href)}
+              prefetch={true}
+              className={`nav-link ${active ? "active" : ""}`}
+              style={{ opacity: isPending && !active ? 0.6 : 1, transition: "opacity 0.15s, background 0.15s, color 0.15s" }}
+            >
+              <Icon d={l.icon} />
+              {l.label}
+              {isPending && active && (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: "auto", animation: "spin 0.7s linear infinite", opacity: 0.5 }}>
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+              )}
+            </Link>
+          );
+        })}
       </nav>
 
       {/* User + Logout */}
@@ -78,8 +101,10 @@ export default function Sidebar({ role, name, email }: { role: string; name: str
             <p style={{ fontSize: "0.67rem", color: "var(--text3)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{email}</p>
           </div>
         </div>
-        <button onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); window.location.href = "/login"; }}
-          className="btn btn-ghost" style={{ width: "100%", fontSize: "0.78rem", padding: "8px", justifyContent: "center", gap: "6px", color: "var(--danger)", borderColor: "rgba(248,113,113,0.2)" }}
+        <button
+          onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); window.location.href = "/login"; }}
+          className="btn btn-ghost"
+          style={{ width: "100%", fontSize: "0.78rem", padding: "8px", justifyContent: "center", gap: "6px", color: "var(--danger)", borderColor: "rgba(248,113,113,0.2)" }}
           onMouseEnter={e => (e.currentTarget.style.background = "rgba(248,113,113,0.08)")}
           onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
         >
