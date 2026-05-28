@@ -2,29 +2,30 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const adminLinks = [
-  { href: "/admin", label: "Dashboard", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
-  { href: "/admin/vendors", label: "Vendors", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" },
-  { href: "/admin/users", label: "Users", icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
-];
+const NAV: Record<string, { href: string; label: string; icon: string }[]> = {
+  ADMIN: [
+    { href: "/admin",         label: "Dashboard", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
+    { href: "/admin/vendors", label: "Vendors",   icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" },
+    { href: "/admin/users",   label: "Users",     icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
+    { href: "/admin/themes",  label: "Themes",    icon: "M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" },
+  ],
+  PROCUREMENT: [
+    { href: "/procurement",              label: "Dashboard",   icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
+    { href: "/procurement/auctions",     label: "Auctions",    icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
+    { href: "/procurement/auctions/new", label: "New Auction", icon: "M12 4v16m8-8H4" },
+    { href: "/procurement/reports",      label: "Reports",     icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
+  ],
+  VENDOR: [
+    { href: "/vendor",          label: "Dashboard",    icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
+    { href: "/vendor/auctions", label: "My Auctions",  icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
+    { href: "/vendor/my-bids",  label: "My Bids",      icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
+    { href: "/vendor/profile",  label: "My Profile",   icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
+  ],
+};
 
-const procurementLinks = [
-  { href: "/procurement", label: "Dashboard", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
-  { href: "/procurement/auctions", label: "Auctions", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
-  { href: "/procurement/auctions/new", label: "New Auction", icon: "M12 4v16m8-8H4" },
-  { href: "/procurement/reports", label: "Reports", icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
-];
-
-const vendorLinks = [
-  { href: "/vendor", label: "Dashboard", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
-  { href: "/vendor/auctions", label: "My Auctions", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
-  { href: "/vendor/my-bids", label: "My Bids", icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
-  { href: "/vendor/profile", label: "My Profile", icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
-];
-
-function NavIcon({ d }: { d: string }) {
+function Icon({ d }: { d: string }) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
       <path d={d} />
     </svg>
   );
@@ -32,91 +33,54 @@ function NavIcon({ d }: { d: string }) {
 
 export default function Sidebar({ role, name, email }: { role: string; name: string; email: string }) {
   const pathname = usePathname();
-  const links = role === "ADMIN" ? adminLinks : role === "PROCUREMENT" ? procurementLinks : vendorLinks;
-  const roleLabel = role === "ADMIN" ? "Administrator" : role === "PROCUREMENT" ? "Procurement" : "Vendor";
+  const links    = NAV[role] || [];
+
+  const isActive = (href: string) =>
+    href === "/admin" || href === "/procurement" || href === "/vendor"
+      ? pathname === href
+      : pathname.startsWith(href);
 
   return (
-    <aside style={{
-      width: "240px", minWidth: "240px", height: "100vh",
-      background: "var(--navy-800)",
-      borderRight: "1px solid rgba(201,168,76,0.1)",
-      display: "flex", flexDirection: "column",
-      overflow: "hidden",
-    }}>
+    <aside style={{ width: "220px", minWidth: "220px", height: "100vh", background: "var(--bg2)", borderRight: "1px solid var(--border)", display: "flex", flexDirection: "column" }}>
+
       {/* Brand */}
-      <div style={{ padding: "24px 20px 20px", borderBottom: "1px solid rgba(201,168,76,0.08)" }}>
+      <div style={{ padding: "20px 16px 16px", borderBottom: "1px solid var(--border)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div style={{
-            width: "36px", height: "36px", borderRadius: "10px", flexShrink: 0,
-            background: "linear-gradient(135deg, var(--gold-dim), var(--gold))",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <svg width="16" height="16" viewBox="0 0 28 28" fill="none">
-              <path d="M14 2L26 22H2L14 2Z" stroke="var(--navy)" strokeWidth="2.5" fill="none"/>
-            </svg>
+          <div style={{ width: "32px", height: "32px", borderRadius: "9px", background: "var(--accent-bg)", border: "1px solid var(--border2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           </div>
           <div>
-            <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "0.95rem", fontWeight: 700, color: "var(--white)", lineHeight: 1.2 }}>
-              <span className="text-gold-gradient">Avaada</span> Auctions
-            </p>
-            <p style={{ fontSize: "0.65rem", color: "var(--slate)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-              {roleLabel}
-            </p>
+            <p style={{ fontFamily: "'Sora', sans-serif", fontSize: "0.9rem", fontWeight: 700, color: "var(--text)", lineHeight: 1.2 }}>Avaada</p>
+            <p style={{ fontSize: "0.62rem", color: "var(--text3)", letterSpacing: "0.07em", textTransform: "uppercase" }}>Auctions</p>
           </div>
         </div>
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: "16px 12px", display: "flex", flexDirection: "column", gap: "4px" }}>
-        <p style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--slate)", padding: "0 8px", marginBottom: "8px" }}>
-          Navigation
-        </p>
-        {links.map(link => {
-          const isActive = pathname === link.href || (link.href !== "/admin" && link.href !== "/procurement" && link.href !== "/vendor" && pathname.startsWith(link.href));
-          return (
-            <Link key={link.href} href={link.href} className={`sidebar-link ${isActive ? "active" : ""}`}>
-              <NavIcon d={link.icon} />
-              {link.label}
-            </Link>
-          );
-        })}
+      <nav style={{ flex: 1, padding: "12px 10px", display: "flex", flexDirection: "column", gap: "2px", overflowY: "auto" }}>
+        <p style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text3)", padding: "0 6px", marginBottom: "6px", marginTop: "2px" }}>Menu</p>
+        {links.map(l => (
+          <Link key={l.href} href={l.href} className={`nav-link ${isActive(l.href) ? "active" : ""}`}>
+            <Icon d={l.icon} />
+            {l.label}
+          </Link>
+        ))}
       </nav>
 
-      {/* User */}
-      <div style={{ padding: "16px 12px", borderTop: "1px solid rgba(201,168,76,0.08)" }}>
-        <div style={{
-          display: "flex", alignItems: "center", gap: "10px",
-          padding: "10px 12px", borderRadius: "10px",
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.06)",
-        }}>
-          <div style={{
-            width: "32px", height: "32px", borderRadius: "50%", flexShrink: 0,
-            background: "linear-gradient(135deg, var(--navy-600), var(--navy-500))",
-            border: "1px solid rgba(201,168,76,0.3)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "0.8rem", fontWeight: 700, color: "var(--gold)",
-          }}>
+      {/* User + Logout */}
+      <div style={{ padding: "12px 10px", borderTop: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "9px", padding: "8px 10px", borderRadius: "var(--radius-sm)", background: "var(--bg3)", marginBottom: "8px" }}>
+          <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "var(--accent-bg)", border: "1px solid var(--border2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", fontWeight: 700, color: "var(--accent)", flexShrink: 0 }}>
             {(name || email || "?")[0].toUpperCase()}
           </div>
           <div style={{ overflow: "hidden", flex: 1 }}>
-            <p style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--white)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name || "User"}</p>
-            <p style={{ fontSize: "0.7rem", color: "var(--slate)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{email}</p>
+            <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name || "User"}</p>
+            <p style={{ fontSize: "0.67rem", color: "var(--text3)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{email}</p>
           </div>
         </div>
-        <button
-          onClick={async () => {
-            await fetch("/api/auth/logout", { method: "POST" });
-            window.location.href = "/login";
-          }}
-          style={{
-            marginTop: "8px", width: "100%", padding: "8px", borderRadius: "8px",
-            border: "1px solid rgba(224,82,82,0.2)", background: "transparent",
-            color: "#e05252", fontSize: "0.78rem", fontWeight: 500,
-            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
-            transition: "all 0.2s ease",
-          }}
-          onMouseEnter={e => (e.currentTarget.style.background = "rgba(224,82,82,0.1)")}
+        <button onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); window.location.href = "/login"; }}
+          className="btn btn-ghost" style={{ width: "100%", fontSize: "0.78rem", padding: "8px", justifyContent: "center", gap: "6px", color: "var(--danger)", borderColor: "rgba(248,113,113,0.2)" }}
+          onMouseEnter={e => (e.currentTarget.style.background = "rgba(248,113,113,0.08)")}
           onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>

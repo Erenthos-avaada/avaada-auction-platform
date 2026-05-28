@@ -127,3 +127,9 @@ model Notification {
   link      String?
   createdAt DateTime @default(now())
 }
+
+model SiteSettings {
+  id        String   @id @default("global")
+  theme     String   @default("emerald-night")
+  updatedAt DateTime @updatedAt
+}

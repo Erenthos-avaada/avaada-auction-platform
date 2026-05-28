@@ -4,9 +4,7 @@ import { jwtVerify } from "jose";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 
-const secret = new TextEncoder().encode(
-  process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "fallback-secret"
-);
+const secret = new TextEncoder().encode(process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "fallback-secret");
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
@@ -14,15 +12,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!token) redirect("/login");
 
   let payload: any;
-  try {
-    const verified = await jwtVerify(token, secret);
-    payload = verified.payload;
-  } catch {
-    redirect("/login");
-  }
+  try { const v = await jwtVerify(token, secret); payload = v.payload; }
+  catch { redirect("/login"); }
 
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--navy)" }}>
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--bg)" }}>
       <Sidebar role={payload.role} name={payload.name as string} email={payload.email as string} />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <Header role={payload.role} name={payload.name as string} />
