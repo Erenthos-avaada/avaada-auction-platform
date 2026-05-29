@@ -6,7 +6,7 @@ const secret = new TextEncoder().encode(
 );
 
 export async function middleware(req: NextRequest) {
-  const path = req.nextUrl.pathname;
+  const path  = req.nextUrl.pathname;
   const token = req.cookies.get("auth-token")?.value;
 
   if (!token) {
@@ -26,6 +26,7 @@ export async function middleware(req: NextRequest) {
     if (path.startsWith("/vendor") && role !== "VENDOR") {
       return NextResponse.redirect(new URL("/login", req.url));
     }
+
     return NextResponse.next();
   } catch {
     return NextResponse.redirect(new URL("/login", req.url));
