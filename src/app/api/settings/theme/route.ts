@@ -10,7 +10,12 @@ export async function GET() {
   if (!settings) {
     settings = await prisma.siteSettings.create({ data: { id: "global", theme: DEFAULT_THEME } });
   }
-  return NextResponse.json({ theme: settings.theme });
+  // Cache at edge for 30 seconds — massively reduces DB hits
+  // Admin switching theme busts this via POST which updates DB
+  return NextResponse.json(
+    { theme: settings.theme },
+    { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" } }
+  );
 }
 
 export async function POST(request: Request) {
@@ -19,7 +24,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid theme" }, { status: 400 });
   }
   await prisma.siteSettings.upsert({
-    where: { id: "global" },
+    where:  { id: "global" },
     update: { theme },
     create: { id: "global", theme },
   });

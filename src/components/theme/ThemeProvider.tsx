@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { THEMES, ThemeId, DEFAULT_THEME } from "@/lib/themes";
+import { THEMES, ThemeId } from "@/lib/themes";
 
 export function applyTheme(themeId: ThemeId) {
   const theme = THEMES[themeId];
@@ -14,14 +14,15 @@ export default function ThemeProvider({ theme }: { theme: ThemeId }) {
   const currentTheme = useRef<ThemeId>(theme);
 
   useEffect(() => {
-    // Apply immediately on mount
+    // Apply server-provided theme immediately
     applyTheme(theme);
     currentTheme.current = theme;
 
-    // Poll DB every 5 seconds for theme changes from admin
+    // Poll every 30s — hits Vercel edge cache not DB directly
+    // DB is only queried once per 30s regardless of how many users are online
     const poll = async () => {
       try {
-        const res  = await fetch("/api/settings/theme", { cache: "no-store" });
+        const res  = await fetch("/api/settings/theme");
         const data = await res.json();
         if (data.theme && data.theme !== currentTheme.current) {
           currentTheme.current = data.theme as ThemeId;
@@ -30,8 +31,8 @@ export default function ThemeProvider({ theme }: { theme: ThemeId }) {
       } catch {}
     };
 
-    poll(); // Check immediately
-    const interval = setInterval(poll, 5000); // Then every 5s
+    poll();
+    const interval = setInterval(poll, 30000); // Every 30s
     return () => clearInterval(interval);
   }, [theme]);
 
