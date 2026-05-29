@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { THEMES, ThemeId, DEFAULT_THEME } from "@/lib/themes";
 
 export function applyTheme(themeId: ThemeId) {
@@ -11,20 +11,28 @@ export function applyTheme(themeId: ThemeId) {
 }
 
 export default function ThemeProvider({ theme }: { theme: ThemeId }) {
-  useEffect(() => {
-    // Apply server-provided theme immediately
-    applyTheme(theme);
+  const currentTheme = useRef<ThemeId>(theme);
 
-    // Then fetch latest from API to catch admin changes
-    // This ensures ALL browsers always get the current theme
-    fetch("/api/settings/theme", { cache: "no-store" })
-      .then(r => r.json())
-      .then(data => {
-        if (data.theme && data.theme !== theme) {
+  useEffect(() => {
+    // Apply immediately on mount
+    applyTheme(theme);
+    currentTheme.current = theme;
+
+    // Poll DB every 5 seconds for theme changes from admin
+    const poll = async () => {
+      try {
+        const res  = await fetch("/api/settings/theme", { cache: "no-store" });
+        const data = await res.json();
+        if (data.theme && data.theme !== currentTheme.current) {
+          currentTheme.current = data.theme as ThemeId;
           applyTheme(data.theme as ThemeId);
         }
-      })
-      .catch(() => {});
+      } catch {}
+    };
+
+    poll(); // Check immediately
+    const interval = setInterval(poll, 5000); // Then every 5s
+    return () => clearInterval(interval);
   }, [theme]);
 
   return null;
