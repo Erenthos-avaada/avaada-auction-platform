@@ -10,23 +10,34 @@ export default async function UsersPage() {
   });
 
   return (
-    <div style={{ maxWidth: "900px" }}>
+    <div style={{ maxWidth: "1100px" }}>
       <div className="anim-up" style={{ marginBottom: "24px" }}>
         <h1 className="page-title">User <span>Management</span></h1>
         <p className="page-sub">Create and manage admin and procurement officer accounts</p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "16px", alignItems: "flex-start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "20px", alignItems: "flex-start" }}>
 
-        {/* Users table */}
+        {/* Users table — takes majority of width */}
         <div className="anim-up d1 surface" style={{ overflow: "hidden" }}>
           <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)" }}>
-            <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text)" }}>All Users ({users.length})</p>
+            <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text)" }}>
+              All Users <span style={{ color: "var(--text3)", fontWeight: 400 }}>({users.length})</span>
+            </p>
           </div>
           {users.length === 0
-            ? <p style={{ padding: "32px", textAlign: "center", color: "var(--text3)", fontSize: "0.85rem" }}>No users yet.</p>
+            ? <p style={{ padding: "40px", textAlign: "center", color: "var(--text3)", fontSize: "0.85rem" }}>
+                No users yet. Create one using the form →
+              </p>
             : <table className="tbl">
-                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Created</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Created</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {users.map((u: any) => (
                     <tr key={u.id}>
@@ -43,7 +54,7 @@ export default async function UsersPage() {
           }
         </div>
 
-        {/* Create user form */}
+        {/* Create user form — fixed 300px on the right */}
         <div className="anim-up d2">
           <CreateUserForm />
         </div>

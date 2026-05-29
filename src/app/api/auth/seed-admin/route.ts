@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   }
   const hashed = await bcrypt.hash("Avaada@2024", 10);
   const user = await prisma.user.create({
-    data: { name: "Avaada Admin", email: "admin@avaada.com", password: hashed, role: "ADMIN" }
+    data: { name: "Avaada Admin", email: "auction-admin@avaada.com", password: hashed, role: "ADMIN" }
   });
   return NextResponse.json({ success: true, email: user.email });
 }

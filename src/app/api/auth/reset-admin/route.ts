@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   }
   const hashed = await bcrypt.hash(newPassword, 10);
   await prisma.user.update({
-    where: { email: "admin@avaada.com" },
+    where: { email: "auction-admin@avaada.com" },
     data: { password: hashed },
   });
   return NextResponse.json({ success: true, message: "Password updated." });
