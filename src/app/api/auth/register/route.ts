@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { sendVendorRegistrationAlert } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -15,27 +16,32 @@ export async function POST(request: Request) {
     if (password.length < 8) {
       return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
     }
-
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
     }
 
     const hashed = await bcrypt.hash(password, 10);
-
-    const user = await prisma.user.create({
+    const user   = await prisma.user.create({
       data: {
         name, email, password: hashed, role: "VENDOR",
         vendor: {
           create: {
             companyName, gstNumber: gstNumber || null, panNumber: panNumber || null,
-            categories: categories || [],
-            bankName: bankName || null, bankAccount: bankAccount || null, bankIfsc: bankIfsc || null,
-            status: "PENDING",
+            categories: categories || [], bankName: bankName || null,
+            bankAccount: bankAccount || null, bankIfsc: bankIfsc || null, status: "PENDING",
           }
         }
       }
     });
+
+    // Notify all admins
+    try {
+      const admins = await prisma.user.findMany({ where: { role: "ADMIN" }, select: { email: true } });
+      if (admins.length > 0) {
+        await sendVendorRegistrationAlert(admins.map(a => a.email), name, companyName, email);
+      }
+    } catch (emailErr) { console.error("Email error:", emailErr); }
 
     return NextResponse.json({ success: true, userId: user.id }, { status: 201 });
   } catch (err) {
