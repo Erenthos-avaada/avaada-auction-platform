@@ -8,7 +8,7 @@ export default async function AuctionsPage({ searchParams }: { searchParams: Pro
   const auctions = await prisma.auction.findMany({
     where: status ? { status: status as any } : {},
     orderBy: { createdAt: "desc" },
-    include: { _count: { select: { bids: true } } },
+    include: { _count: { select: { bids: true } }, items: { orderBy: { sortOrder: "asc" }, take: 1 } },
   });
 
   const counts = await prisma.auction.groupBy({ by: ["status"], _count: true });
@@ -17,9 +17,9 @@ export default async function AuctionsPage({ searchParams }: { searchParams: Pro
 
   const filters = [
     { label: "All",       value: "" },
-    { label: "Active",    value: "ACTIVE"    },
-    { label: "Draft",     value: "DRAFT"     },
-    { label: "Closed",    value: "CLOSED"    },
+    { label: "Active",    value: "ACTIVE" },
+    { label: "Draft",     value: "DRAFT" },
+    { label: "Closed",    value: "CLOSED" },
     { label: "Cancelled", value: "CANCELLED" },
   ];
 
@@ -51,18 +51,17 @@ export default async function AuctionsPage({ searchParams }: { searchParams: Pro
               <Link href="/procurement/auctions/new" className="btn btn-primary" style={{ fontSize: "0.82rem" }}>Create First Auction</Link>
             </div>
           : <table className="tbl">
-              <thead><tr><th>Title</th><th>Category</th><th>Qty</th><th>Status</th><th>Bids</th><th>Starts</th><th>Closes</th><th></th></tr></thead>
+              <thead><tr><th>Title</th><th>Type</th><th>Description</th><th>Status</th><th>Bids</th><th>Closes</th><th></th></tr></thead>
               <tbody>
                 {auctions.map((a: any) => (
                   <tr key={a.id}>
-                    <td style={{ fontWeight: 600, color: "var(--text)", maxWidth: "200px" }}>
+                    <td style={{ fontWeight: 600, color: "var(--text)" }}>
                       <Link href={`/procurement/auctions/${a.id}`} style={{ color: "inherit", textDecoration: "none" }}>{a.title}</Link>
                     </td>
-                    <td>{a.category}</td>
-                    <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.8rem" }}>{a.quantity} {a.unit}</td>
+                    <td><span style={{ fontSize: "0.72rem", color: "var(--text2)", background: "var(--bg3)", padding: "2px 8px", borderRadius: "999px", border: "1px solid var(--border)" }}>{a.auctionType === "ITEM_RATE" ? "Item-Rate" : "Lumpsum"}</span></td>
+                    <td style={{ fontSize: "0.8rem", color: "var(--text2)", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.itemDescription || "—"}</td>
                     <td><span className={`badge badge-${a.status.toLowerCase()}`}>{a.status}</span></td>
                     <td style={{ textAlign: "center" }}>{a._count.bids}</td>
-                    <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.75rem" }}>{new Date(a.startTime).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</td>
                     <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.75rem" }}>{new Date(a.endTime).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</td>
                     <td><Link href={`/procurement/auctions/${a.id}`} style={{ fontSize: "0.78rem", color: "var(--accent)", textDecoration: "none" }}>View →</Link></td>
                   </tr>

@@ -27,73 +27,90 @@ enum AuctionStatus {
   CANCELLED
 }
 
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  password      String
-  role          Role      @default(VENDOR)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+enum AuctionType {
+  LUMPSUM
+  ITEM_RATE
+}
 
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String         @unique
+  password      String
+  role          Role           @default(VENDOR)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   vendor        Vendor?
   notifications Notification[]
-  auctions      Auction[]       @relation("CreatedBy")
+  auctions      Auction[]      @relation("CreatedBy")
 }
 
 model Vendor {
-  id            String       @id @default(cuid())
-  userId        String       @unique
-  user          User         @relation(fields: [userId], references: [id])
-  companyName   String
-  gstNumber     String?
-  panNumber     String?
-  bankName      String?
-  bankAccount   String?
-  bankIfsc      String?
-  categories    String[]
-  status        VendorStatus @default(PENDING)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  bids          Bid[]
-  invites       AuctionInvite[]
+  id          String       @id @default(cuid())
+  userId      String       @unique
+  user        User         @relation(fields: [userId], references: [id])
+  companyName String
+  gstNumber   String?
+  panNumber   String?
+  bankName    String?
+  bankAccount String?
+  bankIfsc    String?
+  categories  String[]
+  status      VendorStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  bids        Bid[]
+  invites     AuctionInvite[]
 }
 
 model Auction {
-  id               String        @id @default(cuid())
-  title            String
-  description      String?
-  category         String
-  quantity         Float
-  unit             String
-  deliveryTerms    String?
-  startTime        DateTime
-  endTime          DateTime
-  autoExtendMins   Int           @default(10)
-  minDecrement     Float         @default(0)
-  status           AuctionStatus @default(DRAFT)
-  createdById      String
-  createdBy        User          @relation("CreatedBy", fields: [createdById], references: [id])
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  id              String        @id @default(cuid())
+  title           String
+  auctionType     AuctionType   @default(LUMPSUM)
+  itemDescription String?
+  description     String?
+  deliveryTerms   String?
+  startTime       DateTime
+  endTime         DateTime
+  autoExtendMins  Int           @default(10)
+  minDecrement    Float         @default(0)
+  status          AuctionStatus @default(DRAFT)
+  createdById     String
+  createdBy       User          @relation("CreatedBy", fields: [createdById], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  items           AuctionItem[]
+  bids            Bid[]
+  documents       AuctionDocument[]
+  invites         AuctionInvite[]
+}
 
-  bids             Bid[]
-  documents        AuctionDocument[]
-  invites          AuctionInvite[]
+model AuctionItem {
+  id          String   @id @default(cuid())
+  auctionId   String
+  auction     Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Float
+  unit        String
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  bids        Bid[]
 }
 
 model Bid {
-  id         String   @id @default(cuid())
+  id         String       @id @default(cuid())
   auctionId  String
-  auction    Auction  @relation(fields: [auctionId], references: [id])
+  auction    Auction      @relation(fields: [auctionId], references: [id])
   vendorId   String
-  vendor     Vendor   @relation(fields: [vendorId], references: [id])
+  vendor     Vendor       @relation(fields: [vendorId], references: [id])
+  itemId     String?
+  item       AuctionItem? @relation(fields: [itemId], references: [id])
   amount     Float
   note       String?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime     @default(now())
 
   @@index([auctionId, amount])
+  @@index([auctionId, itemId, amount])
 }
 
 model AuctionDocument {
@@ -107,12 +124,12 @@ model AuctionDocument {
 }
 
 model AuctionInvite {
-  id         String   @id @default(cuid())
-  auctionId  String
-  auction    Auction  @relation(fields: [auctionId], references: [id])
-  vendorId   String
-  vendor     Vendor   @relation(fields: [vendorId], references: [id])
-  sentAt     DateTime @default(now())
+  id        String   @id @default(cuid())
+  auctionId String
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  vendorId  String
+  vendor    Vendor   @relation(fields: [vendorId], references: [id])
+  sentAt    DateTime @default(now())
 
   @@unique([auctionId, vendorId])
 }

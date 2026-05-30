@@ -8,7 +8,11 @@ export default async function AuctionDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const auction = await prisma.auction.findUnique({
     where: { id },
-    include: { _count: { select: { bids: true } }, createdBy: { select: { name: true } } },
+    include: {
+      _count:    { select: { bids: true } },
+      createdBy: { select: { name: true } },
+      items:     { orderBy: { sortOrder: "asc" } },
+    },
   });
   if (!auction) notFound();
 
@@ -17,9 +21,17 @@ export default async function AuctionDetailPage({ params }: { params: Promise<{ 
     include: { vendor: { select: { companyName: true } } },
   });
 
-  const vendors = await prisma.vendor.findMany({ where: { status: "APPROVED" }, select: { id: true, companyName: true } });
-  const invites = await prisma.auctionInvite.findMany({ where: { auctionId: id }, select: { vendorId: true } });
+  const vendors   = await prisma.vendor.findMany({ where: { status: "APPROVED" }, select: { id: true, companyName: true } });
+  const invites   = await prisma.auctionInvite.findMany({ where: { auctionId: id }, select: { vendorId: true } });
   const invitedIds = invites.map((i: any) => i.vendorId);
 
-  return <AuctionDetailClient auction={JSON.parse(JSON.stringify(auction))} initialBids={JSON.parse(JSON.stringify(bids))} vendors={vendors} invitedIds={invitedIds} role="PROCUREMENT" />;
+  return (
+    <AuctionDetailClient
+      auction={JSON.parse(JSON.stringify(auction))}
+      initialBids={JSON.parse(JSON.stringify(bids))}
+      vendors={vendors}
+      invitedIds={invitedIds}
+      role="PROCUREMENT"
+    />
+  );
 }
