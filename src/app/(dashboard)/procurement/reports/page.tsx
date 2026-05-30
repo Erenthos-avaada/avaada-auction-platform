@@ -36,12 +36,12 @@ export default async function ReportsPage() {
         {auctions.length === 0
           ? <p style={{ padding: "40px", textAlign: "center", color: "var(--text3)", fontSize: "0.85rem" }}>No closed auctions yet.</p>
           : <table className="tbl">
-              <thead><tr><th>Auction</th><th>Category</th><th>Status</th><th>Bids</th><th>Invites</th><th>Lowest Bid</th><th>Leading Vendor</th></tr></thead>
+              <thead><tr><th>Auction</th><th>Type</th><th>Status</th><th>Bids</th><th>Invites</th><th>Lowest Bid</th><th>Leading Vendor</th></tr></thead>
               <tbody>
                 {auctions.map((a: any) => (
                   <tr key={a.id}>
                     <td style={{ fontWeight: 600, color: "var(--text)", maxWidth: "180px" }}>{a.title}</td>
-                    <td>{a.category}</td>
+                    <td>{a.auctionType === "ITEM_RATE" ? "Item-Rate" : "Lumpsum"}</td>
                     <td><span className={`badge badge-${a.status.toLowerCase()}`}>{a.status}</span></td>
                     <td style={{ textAlign: "center" }}>{a._count.bids}</td>
                     <td style={{ textAlign: "center" }}>{a._count.invites}</td>

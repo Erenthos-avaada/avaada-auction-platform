@@ -83,7 +83,7 @@ export default function VendorBidClient({ auction: initial, initialBids, myBids:
         <h1 className="page-title">{auction.title}</h1>
         <div style={{ display: "flex", gap: "8px", marginTop: "8px", alignItems: "center" }}>
           <span className={`badge badge-${auction.status.toLowerCase()}`}>{auction.status}</span>
-          <span style={{ fontSize: "0.78rem", color: "var(--text3)" }}>{auction.category} · {auction.quantity} {auction.unit}</span>
+          <span style={{ fontSize: "0.78rem", color: "var(--text3)" }}>{auction.itemDescription || auction.title}</span>
           {myRank === 1 && <span className="badge badge-active">🏆 Leading</span>}
           {myRank && myRank > 1 && <span className="badge badge-draft">#{myRank} Position</span>}
         </div>

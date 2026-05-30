@@ -9,7 +9,7 @@ export default async function ProcurementDashboard() {
     prisma.auction.count({ where: { status: "DRAFT" } }),
     prisma.auction.count({ where: { status: "CLOSED" } }),
     prisma.bid.count(),
-    prisma.auction.findMany({ orderBy: { createdAt: "desc" }, take: 6, include: { _count: { select: { bids: true } } } }),
+    prisma.auction.findMany({ orderBy: { createdAt: "desc" }, take: 6, include: { _count: { select: { bids: true } }, items: false } }),
   ]);
 
   const stats = [
@@ -49,12 +49,12 @@ export default async function ProcurementDashboard() {
               <Link href="/procurement/auctions/new" className="btn btn-primary" style={{ fontSize: "0.82rem" }}>Create First Auction</Link>
             </div>
           : <table className="tbl">
-              <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Bids</th><th>Closes</th></tr></thead>
+              <thead><tr><th>Title</th><th>Type</th><th>Status</th><th>Bids</th><th>Closes</th></tr></thead>
               <tbody>
                 {recent.map((a: any) => (
                   <tr key={a.id}>
                     <td><Link href={`/procurement/auctions/${a.id}`} style={{ color: "var(--text)", textDecoration: "none", fontWeight: 500 }}>{a.title}</Link></td>
-                    <td>{a.category}</td>
+                    <td>{a.auctionType === "ITEM_RATE" ? "Item-Rate" : "Lumpsum"}</td>
                     <td><span className={`badge badge-${a.status.toLowerCase()}`}>{a.status}</span></td>
                     <td>{a._count.bids}</td>
                     <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.78rem" }}>{new Date(a.endTime).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</td>

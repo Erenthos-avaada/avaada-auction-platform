@@ -44,13 +44,13 @@ export default async function VendorAuctionsPage() {
               <p style={{ color: "var(--text3)", fontSize: "0.78rem", marginTop: "6px" }}>The procurement team will invite you when relevant auctions are published.</p>
             </div>
           : <table className="tbl">
-              <thead><tr><th>Auction</th><th>Category</th><th>Qty</th><th>Status</th><th>Bids</th><th>Closes</th><th></th></tr></thead>
+              <thead><tr><th>Auction</th><th>Type</th><th>Description</th><th>Status</th><th>Bids</th><th>Closes</th><th></th></tr></thead>
               <tbody>
                 {invites.map((inv: any) => (
                   <tr key={inv.id}>
                     <td style={{ fontWeight: 600, color: "var(--text)" }}>{inv.auction.title}</td>
-                    <td>{inv.auction.category}</td>
-                    <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.78rem" }}>{inv.auction.quantity} {inv.auction.unit}</td>
+                    <td>{inv.auction.auctionType === "ITEM_RATE" ? "Item-Rate" : "Lumpsum"}</td>
+                    <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.78rem" }}>{inv.auction.itemDescription || "—"}</td>
                     <td><span className={`badge badge-${inv.auction.status.toLowerCase()}`}>{inv.auction.status}</span></td>
                     <td style={{ textAlign: "center" }}>{inv.auction._count.bids}</td>
                     <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.75rem" }}>{new Date(inv.auction.endTime).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</td>

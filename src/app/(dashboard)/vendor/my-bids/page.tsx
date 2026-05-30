@@ -17,7 +17,7 @@ export default async function MyBidsPage() {
   const bids = await prisma.bid.findMany({
     where: { vendorId: vendor.id },
     orderBy: { createdAt: "desc" },
-    include: { auction: { select: { id: true, title: true, status: true, endTime: true, category: true } } },
+    include: { auction: { select: { id: true, title: true, status: true, endTime: true, auctionType: true, itemDescription: true } } },
   });
 
   // Group by auction, keep only lowest per auction
@@ -40,12 +40,12 @@ export default async function MyBidsPage() {
         {bestBids.length === 0
           ? <p style={{ padding: "48px", textAlign: "center", color: "var(--text3)", fontSize: "0.85rem" }}>No bids placed yet.</p>
           : <table className="tbl">
-              <thead><tr><th>Auction</th><th>Category</th><th>My Best Bid</th><th>Total Bids</th><th>Status</th><th>Closes</th><th></th></tr></thead>
+              <thead><tr><th>Auction</th><th>Type</th><th>My Best Bid</th><th>Total Bids</th><th>Status</th><th>Closes</th><th></th></tr></thead>
               <tbody>
                 {bestBids.map((b: any) => (
                   <tr key={b.auctionId}>
                     <td style={{ fontWeight: 600, color: "var(--text)" }}>{b.auction.title}</td>
-                    <td>{b.auction.category}</td>
+                    <td>{b.auction.auctionType === "ITEM_RATE" ? "Item-Rate" : "Lumpsum"}</td>
                     <td style={{ fontFamily: "'DM Mono',monospace", fontWeight: 700, color: "var(--accent)" }}>₹{b.amount.toLocaleString("en-IN")}</td>
                     <td style={{ textAlign: "center" }}>{bids.filter((x: any) => x.auctionId === b.auctionId).length}</td>
                     <td><span className={`badge badge-${b.auction.status.toLowerCase()}`}>{b.auction.status}</span></td>
