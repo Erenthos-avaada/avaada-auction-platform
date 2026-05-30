@@ -1,11 +1,30 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM   = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
-const BASE   = process.env.NEXTAUTH_URL      || "https://avaada-auction-platform.vercel.app";
+const resend  = new Resend(process.env.RESEND_API_KEY);
+const FROM    = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+const BASE    = process.env.NEXTAUTH_URL      || "https://avaada-auction-platform.vercel.app";
+
+export function isEmailConfigured(): boolean {
+  return !!process.env.RESEND_API_KEY;
+}
+
+async function send(payload: { from: string; to: string | string[]; subject: string; html: string }) {
+  if (!isEmailConfigured()) {
+    console.warn("[Email] RESEND_API_KEY not set — skipping email:", payload.subject);
+    return { skipped: true };
+  }
+  try {
+    const result = await resend.emails.send(payload);
+    console.log("[Email] Sent:", payload.subject, "→", payload.to, "| ID:", (result as any)?.id);
+    return result;
+  } catch (err: any) {
+    console.error("[Email] FAILED:", payload.subject, "→", payload.to, "| Error:", err?.message || err);
+    throw err;
+  }
+}
 
 function wrap(title: string, body: string) {
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width"/></head>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/></head>
 <body style="margin:0;padding:0;background:#f4f7fb;font-family:Inter,Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7fb;padding:32px 0;">
   <tr><td align="center">
@@ -14,12 +33,10 @@ function wrap(title: string, body: string) {
         <span style="font-size:20px;font-weight:700;color:#34d364;font-family:Arial,sans-serif;">⬡ Avaada Auctions</span>
         <p style="margin:4px 0 0;font-size:11px;color:rgba(52,211,100,0.6);letter-spacing:0.08em;text-transform:uppercase;">Procurement Platform</p>
       </td></tr>
-      <tr><td style="padding:28px 32px 0;">
-        <h1 style="margin:0;font-size:20px;font-weight:700;color:#0f172a;">${title}</h1>
-      </td></tr>
+      <tr><td style="padding:28px 32px 0;"><h1 style="margin:0;font-size:20px;font-weight:700;color:#0f172a;">${title}</h1></td></tr>
       <tr><td style="padding:16px 32px 28px;font-size:14px;color:#475569;line-height:1.7;">${body}</td></tr>
       <tr><td style="padding:20px 32px;border-top:1px solid #e2e8f0;text-align:center;">
-        <p style="margin:0;font-size:11px;color:#94a3b8;">© ${new Date().getFullYear()} Avaada Group · This is an automated message, please do not reply.</p>
+        <p style="margin:0;font-size:11px;color:#94a3b8;">© ${new Date().getFullYear()} Avaada Group · Automated message, please do not reply.</p>
       </td></tr>
     </table>
   </td></tr>
@@ -32,11 +49,11 @@ function btn(label: string, url: string, color = "#34d364") {
 }
 
 export async function sendVendorRegistrationAlert(adminEmails: string[], vendorName: string, companyName: string, vendorEmail: string) {
-  return resend.emails.send({
+  return send({
     from: FROM, to: adminEmails,
     subject: `New vendor registration — ${companyName}`,
     html: wrap("New Vendor Registration", `
-      <p>A new vendor has submitted a registration request and is awaiting your approval.</p>
+      <p>A new vendor has submitted a registration request awaiting your approval.</p>
       <table style="width:100%;margin:16px 0;border-collapse:collapse;">
         <tr><td style="padding:8px 0;color:#94a3b8;font-size:13px;width:140px;">Company</td><td style="padding:8px 0;font-weight:600;color:#0f172a;">${companyName}</td></tr>
         <tr><td style="padding:8px 0;color:#94a3b8;font-size:13px;">Contact</td><td style="padding:8px 0;color:#0f172a;">${vendorName}</td></tr>
@@ -48,7 +65,7 @@ export async function sendVendorRegistrationAlert(adminEmails: string[], vendorN
 }
 
 export async function sendVendorApprovedEmail(to: string, companyName: string) {
-  return resend.emails.send({
+  return send({
     from: FROM, to,
     subject: `Your registration has been approved — Avaada Auctions`,
     html: wrap("Registration Approved ✓", `
@@ -59,30 +76,26 @@ export async function sendVendorApprovedEmail(to: string, companyName: string) {
   });
 }
 
-// Rejected — can reapply
 export async function sendVendorRejectedEmail(to: string, companyName: string) {
-  return resend.emails.send({
+  return send({
     from: FROM, to,
     subject: `Your vendor application status — Avaada Auctions`,
     html: wrap("Application Not Approved", `
       <p>Dear <strong>${companyName}</strong>,</p>
-      <p>Thank you for your interest in the Avaada Auction Platform. After reviewing your application, we are unable to approve it at this time.</p>
-      <p>If you believe this is an error or would like more information, please contact the Avaada procurement team directly.</p>
-      <p>You are welcome to submit a new application once any outstanding issues have been resolved.</p>
+      <p>Thank you for your interest. After reviewing your application, we are unable to approve it at this time.</p>
+      <p>Please contact the Avaada procurement team for more information. You are welcome to submit a new application once any outstanding issues have been resolved.</p>
       ${btn("Re-apply →", `${BASE}/register`, "#2563eb")}
     `),
   });
 }
 
-// Blacklisted — permanent ban, no reapply
 export async function sendVendorBlacklistedEmail(to: string, companyName: string) {
-  return resend.emails.send({
+  return send({
     from: FROM, to,
     subject: `Account suspended — Avaada Auctions`,
     html: wrap("Account Suspended", `
       <p>Dear <strong>${companyName}</strong>,</p>
-      <p>Your account on the Avaada Auction Platform has been <strong>suspended due to a policy violation</strong>.</p>
-      <p>This action is permanent. Your account and all associated data have been restricted from platform access.</p>
+      <p>Your account has been <strong>suspended due to a policy violation</strong>. This action is permanent.</p>
       <p>If you believe this is an error, please contact the Avaada procurement team with supporting documentation.</p>
     `),
   });
@@ -90,7 +103,7 @@ export async function sendVendorBlacklistedEmail(to: string, companyName: string
 
 export async function sendAuctionInviteEmail(to: string, companyName: string, auctionTitle: string, auctionId: string, endTime: Date) {
   const closes = endTime.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
-  return resend.emails.send({
+  return send({
     from: FROM, to,
     subject: `You're invited to bid — ${auctionTitle}`,
     html: wrap("Auction Invitation", `
@@ -107,7 +120,7 @@ export async function sendAuctionInviteEmail(to: string, companyName: string, au
 }
 
 export async function sendAuctionClosingSoonEmail(to: string, companyName: string, auctionTitle: string, auctionId: string, minutesLeft: number) {
-  return resend.emails.send({
+  return send({
     from: FROM, to,
     subject: `⏰ Closing in ${minutesLeft} min — ${auctionTitle}`,
     html: wrap(`Auction Closing in ${minutesLeft} Minutes`, `
@@ -121,7 +134,7 @@ export async function sendAuctionClosingSoonEmail(to: string, companyName: strin
 }
 
 export async function sendAuctionClosedEmail(to: string, companyName: string, auctionTitle: string) {
-  return resend.emails.send({
+  return send({
     from: FROM, to,
     subject: `Auction closed — ${auctionTitle}`,
     html: wrap("Auction Closed", `
