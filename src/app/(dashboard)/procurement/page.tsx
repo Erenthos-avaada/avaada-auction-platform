@@ -9,7 +9,7 @@ export default async function ProcurementDashboard() {
     prisma.auction.count({ where: { status: "DRAFT" } }),
     prisma.auction.count({ where: { status: "CLOSED" } }),
     prisma.bid.count(),
-    prisma.auction.findMany({ orderBy: { createdAt: "desc" }, take: 6, include: { _count: { select: { bids: true } }, items: false } }),
+    prisma.auction.findMany({ orderBy: { createdAt: "desc" }, take: 6, include: { _count: { select: { bids: true } } } }),
   ]);
 
   const stats = [
