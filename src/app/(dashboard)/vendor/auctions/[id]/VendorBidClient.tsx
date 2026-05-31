@@ -221,23 +221,25 @@ export default function VendorBidClient({ auction: initial, initialBids, myBids:
               {canBid && (
                 <>
                   {/* Min decrement hint based on MY lowest bid */}
-                  {myLowestBid && (
+                  {/* Only show vendor's OWN bid info — never show other vendors' amounts */}
+                  {(myLowestBid || minDec > 0) && (
                     <div style={{ padding: "10px 14px", background: "var(--bg3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", marginBottom: "16px", fontSize: "0.78rem", color: "var(--text2)", lineHeight: 1.7 }}>
-                      <p>Your current bid: <strong style={{ color: "var(--accent)" }}>{fmt(myLowestBid.amount)}</strong></p>
-                      {minDec > 0 && validBids && (
-                        <p>Next valid bids (step ₹{minDec.toLocaleString("en-IN")}): {validBids.map((v, i) => (
-                          <strong key={i} style={{ color: "var(--accent)", marginRight: "8px" }}>{fmt(v)}</strong>
-                        ))}</p>
+                      {myLowestBid && (
+                        <p>Your current bid: <strong style={{ color: "var(--accent)" }}>{fmt(myLowestBid.amount)}</strong></p>
                       )}
-                      {minDec === 0 && bids[0] && (
-                        <p>Must bid below: <strong style={{ color: "var(--accent)" }}>{fmt(bids[0].amount)}</strong></p>
+                      {minDec > 0 && (
+                        <p>Decrement step: <strong style={{ color: "var(--text)" }}>{fmt(minDec)}</strong></p>
                       )}
-                    </div>
-                  )}
-                  {!myLowestBid && bids[0] && minDec > 0 && (
-                    <div style={{ padding: "10px 14px", background: "var(--bg3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", marginBottom: "16px", fontSize: "0.78rem", color: "var(--text2)" }}>
-                      <p>Current lowest bid: <strong style={{ color: "var(--accent)" }}>{fmt(bids[0].amount)}</strong></p>
-                      <p>Decrement step: <strong style={{ color: "var(--text)" }}>{fmt(minDec)}</strong></p>
+                      {myLowestBid && minDec > 0 && validBids && (
+                        <p>Your next valid bids:{" "}
+                          {validBids.map((v, i) => (
+                            <strong key={i} style={{ color: "var(--accent)", marginRight: "8px" }}>{fmt(v)}</strong>
+                          ))}
+                        </p>
+                      )}
+                      {!myLowestBid && (
+                        <p style={{ color: "var(--text3)" }}>Submit your opening bid to participate.</p>
+                      )}
                     </div>
                   )}
 
@@ -248,7 +250,7 @@ export default function VendorBidClient({ auction: initial, initialBids, myBids:
                     <div>
                       <label className="label">Your Bid Amount (₹)</label>
                       <input className="input" type="number"
-                        placeholder={myLowestBid ? `Below ${fmt(myLowestBid.amount)}` : bids[0] ? `Below ${fmt(bids[0].amount)}` : "Enter your bid"}
+                        placeholder={myLowestBid ? `Below ${fmt(myLowestBid.amount)}` : "Enter your opening bid"}
                         value={amount} onChange={e => setAmount(e.target.value)}
                         min="1" step="any" required
                         style={{ fontSize: "1.1rem", fontFamily: "'DM Mono',monospace" }} />
