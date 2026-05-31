@@ -29,7 +29,9 @@ export async function POST(request: Request) {
     if (!title || !itemDescription || !startTime || !endTime) {
       return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
     }
-    if (new Date(endTime) <= new Date(startTime)) {
+    // Parse as IST — append +05:30 if no timezone info present
+    const parseIST = (dt: string) => new Date(dt.includes("+") || dt.endsWith("Z") ? dt : dt + "+05:30");
+    if (parseIST(endTime) <= parseIST(startTime)) {
       return NextResponse.json({ error: "End time must be after start time." }, { status: 400 });
     }
     if (auctionType === "ITEM_RATE" && (!items || items.length === 0)) {
@@ -43,8 +45,8 @@ export async function POST(request: Request) {
         itemDescription: itemDescription || null,
         description:     description    || null,
         deliveryTerms:   deliveryTerms  || null,
-        startTime:       new Date(startTime),
-        endTime:         new Date(endTime),
+        startTime:       parseIST(startTime),
+        endTime:         parseIST(endTime),
         autoExtendMins:  autoExtendMins ?? 10,
         minDecrement:    minDecrement   ?? 0,
         status:          status         || "DRAFT",
