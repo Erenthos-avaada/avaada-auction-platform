@@ -54,18 +54,42 @@ export default function AuctionDetailClient({ auction: initial, initialBids, ven
 
   useEffect(() => {
     if (auction.status === "CLOSED" || auction.status === "CANCELLED") return;
-    const es = new EventSource(`/api/auctions/${auction.id}/stream`);
-    es.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      if (data.type === "init" || data.type === "update") {
-        if (data.auction) setAuction(data.auction);
-        if (data.bids)    setBids(data.bids);
-      }
-      if (data.type === "closed") es.close();
+    if (Date.now() > new Date(auction.endTime).getTime()) return;
+
+    let es: EventSource;
+    let retryTimeout: ReturnType<typeof setTimeout>;
+
+    const connect = () => {
+      es = new EventSource(`/api/auctions/${auction.id}/stream`);
+      es.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        if (data.type === "init" || data.type === "update") {
+          if (data.auction) setAuction(data.auction);
+          if (data.bids)    setBids(data.bids);
+        }
+        if (data.type === "closed") {
+          if (data.auction) setAuction(data.auction);
+          es.close();
+        }
+      };
+      es.onerror = () => {
+        es.close();
+        if (Date.now() < new Date(auction.endTime).getTime()) {
+          retryTimeout = setTimeout(connect, 10000);
+        }
+      };
     };
-    es.onerror = () => es.close();
-    return () => es.close();
-  }, [auction.id]);
+
+    const now   = Date.now();
+    const start = new Date(auction.startTime).getTime();
+    if (now < start) {
+      retryTimeout = setTimeout(connect, start - now);
+    } else {
+      connect();
+    }
+
+    return () => { es?.close(); clearTimeout(retryTimeout); };
+  }, [auction.id, auction.status]);
 
   const closeAuction = async () => {
     setClosing(true);

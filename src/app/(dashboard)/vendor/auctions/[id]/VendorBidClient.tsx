@@ -69,21 +69,55 @@ export default function VendorBidClient({ auction: initial, initialBids, myBids:
   const [error,    setError]    = useState("");
   const [success,  setSuccess]  = useState("");
 
-  // SSE
+  // SSE — only connect if auction is ACTIVE and has started
   useEffect(() => {
+    const now   = Date.now();
+    const start = new Date(auction.startTime).getTime();
+    const end   = new Date(auction.endTime).getTime();
+
     if (auction.status !== "ACTIVE") return;
-    const es = new EventSource(`/api/auctions/${auction.id}/stream`);
-    es.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      if (data.type === "init" || data.type === "update") {
-        if (data.auction) setAuction(data.auction);
-        if (data.bids)    setBids(data.bids);
-      }
-      if (data.type === "closed") { setAuction((a: any) => ({ ...a, status: "CLOSED" })); es.close(); }
+    if (now > end) return; // already ended
+
+    let es: EventSource;
+    let retryTimeout: ReturnType<typeof setTimeout>;
+
+    const connect = () => {
+      es = new EventSource(`/api/auctions/${auction.id}/stream`);
+
+      es.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        if (data.type === "init" || data.type === "update") {
+          if (data.auction) setAuction(data.auction);
+          if (data.bids)    setBids(data.bids);
+        }
+        if (data.type === "closed" || data.type === "pending") {
+          if (data.auction) setAuction(data.auction);
+          if (data.bids)    setBids(data.bids || []);
+          es.close();
+        }
+      };
+
+      es.onerror = () => {
+        es.close();
+        // Reconnect after 10s if auction should still be active
+        if (Date.now() < new Date(auction.endTime).getTime()) {
+          retryTimeout = setTimeout(connect, 10000);
+        }
+      };
     };
-    es.onerror = () => es.close();
-    return () => es.close();
-  }, [auction.id]);
+
+    // If auction hasn't started yet, wait until start time then connect
+    if (now < start) {
+      retryTimeout = setTimeout(connect, start - now);
+    } else {
+      connect();
+    }
+
+    return () => {
+      es?.close();
+      clearTimeout(retryTimeout);
+    };
+  }, [auction.id, auction.status]);
 
   const submitBid = async (e: React.FormEvent) => {
     e.preventDefault();
