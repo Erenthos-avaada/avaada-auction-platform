@@ -49,8 +49,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       if (amount >= lowestBid.amount) {
         return NextResponse.json({ error: `Your bid must be lower than the current lowest bid of ₹${lowestBid.amount.toLocaleString("en-IN")}.` }, { status: 400 });
       }
-      if (auction.minDecrement > 0 && (lowestBid.amount - amount) < auction.minDecrement) {
-        return NextResponse.json({ error: `Bid must be at least ₹${auction.minDecrement.toLocaleString("en-IN")} lower than the current lowest bid.` }, { status: 400 });
+      if (auction.minDecrement > 0) {
+        const diff = lowestBid.amount - amount;
+        // Bid must be a multiple of minDecrement lower than current lowest
+        if (diff < auction.minDecrement) {
+          return NextResponse.json({ error: `Bid must be at least ₹${auction.minDecrement.toLocaleString("en-IN")} lower than current lowest bid of ₹${lowestBid.amount.toLocaleString("en-IN")}.` }, { status: 400 });
+        }
+        if (Math.round(diff * 100) % Math.round(auction.minDecrement * 100) !== 0) {
+          const validBids = [1,2,3].map(n => (lowestBid.amount - n * auction.minDecrement).toLocaleString("en-IN"));
+          return NextResponse.json({ error: `Bid must be in multiples of ₹${auction.minDecrement.toLocaleString("en-IN")} below current lowest. Valid bids: ₹${validBids.join(", ₹")}...` }, { status: 400 });
+        }
       }
     }
 

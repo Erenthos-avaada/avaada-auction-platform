@@ -119,9 +119,19 @@ export default function VendorBidClient({ auction: initial, initialBids, myBids:
               <p style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text)", marginBottom: "16px" }}>Place a Bid</p>
 
               {lowestBid && (
-                <div style={{ padding: "10px 14px", background: "var(--bg3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", marginBottom: "16px", fontSize: "0.78rem", color: "var(--text2)" }}>
-                  Current lowest: <strong style={{ color: "var(--accent)" }}>{fmt(lowestBid.amount)}</strong>
-                  {auction.minDecrement > 0 && <> · Min decrement: <strong style={{ color: "var(--text)" }}>{fmt(auction.minDecrement)}</strong> · Must bid below: <strong style={{ color: "var(--accent)" }}>{fmt(lowestBid.amount - auction.minDecrement)}</strong></>}
+                <div style={{ padding: "10px 14px", background: "var(--bg3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", marginBottom: "16px", fontSize: "0.78rem", color: "var(--text2)", lineHeight: 1.7 }}>
+                  <p>Current lowest: <strong style={{ color: "var(--accent)" }}>{fmt(lowestBid.amount)}</strong></p>
+                  {auction.minDecrement > 0 && (
+                    <>
+                      <p>Decrement step: <strong style={{ color: "var(--text)" }}>{fmt(auction.minDecrement)}</strong></p>
+                      <p>Valid next bids:{" "}
+                        {[1,2,3].map(n => {
+                          const v = lowestBid.amount - n * auction.minDecrement;
+                          return v > 0 ? <strong key={n} style={{ color: "var(--accent)", marginRight: "8px" }}>{fmt(v)}</strong> : null;
+                        })}
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
 
