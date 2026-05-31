@@ -2,13 +2,27 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-function Countdown({ endTime, onExpire }: { endTime: string; onExpire?: () => void }) {
+function Countdown({ startTime, endTime }: { startTime: string; endTime: string }) {
   const [display, setDisplay] = useState("");
   const [urgent,  setUrgent]  = useState(false);
+  const [phase,   setPhase]   = useState<"pending"|"active"|"ended">("pending");
   useEffect(() => {
     const tick = () => {
-      const diff = new Date(endTime).getTime() - Date.now();
-      if (diff <= 0) { setDisplay("Ended"); onExpire?.(); return; }
+      const now   = Date.now();
+      const start = new Date(startTime).getTime();
+      const end   = new Date(endTime).getTime();
+      if (now < start) {
+        setPhase("pending");
+        const diff = start - now;
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        setDisplay(h > 0 ? `Starts in ${h}h ${m}m ${s}s` : `Starts in ${m}m ${s}s`);
+        setUrgent(false); return;
+      }
+      if (now >= end) { setPhase("ended"); setDisplay("Auction Ended"); return; }
+      setPhase("active");
+      const diff = end - now;
       const h = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
@@ -18,7 +32,9 @@ function Countdown({ endTime, onExpire }: { endTime: string; onExpire?: () => vo
     tick();
     const i = setInterval(tick, 1000);
     return () => clearInterval(i);
-  }, [endTime]);
+  }, [startTime, endTime]);
+  if (phase === "pending") return <span style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.9rem", color: "var(--info)" }}>{display}</span>;
+  if (phase === "ended")   return <span style={{ fontFamily: "'DM Mono',monospace", color: "var(--text2)" }}>Ended</span>;
   return <span style={{ fontFamily: "'DM Mono',monospace", fontSize: "1.1rem", fontWeight: 600, color: urgent ? "var(--danger)" : "var(--accent)" }}>{display}</span>;
 }
 
@@ -136,7 +152,7 @@ export default function AuctionDetailClient({ auction: initial, initialBids, ven
               <p className="stat-label">Time Left</p>
               <div style={{ marginTop: "8px" }}>
                 {auction.status === "ACTIVE"
-                  ? <Countdown endTime={auction.endTime} />
+                  ? <Countdown startTime={auction.startTime} endTime={auction.endTime} />
                   : <span style={{ fontFamily: "'DM Mono',monospace", color: "var(--text2)" }}>{auction.status}</span>
                 }
               </div>

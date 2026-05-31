@@ -4,7 +4,6 @@ import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
 export const dynamic = "force-dynamic";
-
 const secret = new TextEncoder().encode(process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "fallback-secret");
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -35,40 +34,43 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const now = new Date();
     if (now < auction.startTime) return NextResponse.json({ error: "Auction has not started yet." }, { status: 400 });
-    if (now > auction.endTime)   return NextResponse.json({ error: "Auction has already ended." }, { status: 400 });
+    if (now > auction.endTime)   return NextResponse.json({ error: "Auction has already ended."  }, { status: 400 });
 
     const { amount, note } = await request.json();
     if (!amount || isNaN(amount) || amount <= 0) {
       return NextResponse.json({ error: "Invalid bid amount." }, { status: 400 });
     }
 
-    // Get current lowest bid
-    const lowestBid = await prisma.bid.findFirst({ where: { auctionId: id }, orderBy: { amount: "asc" } });
+    // Global lowest bid — new bid must always be lower than this
+    const globalLowest = await prisma.bid.findFirst({ where: { auctionId: id }, orderBy: { amount: "asc" } });
+    if (globalLowest && amount >= globalLowest.amount) {
+      return NextResponse.json({ error: `Your bid must be lower than the current lowest bid of ₹${globalLowest.amount.toLocaleString("en-IN")}.` }, { status: 400 });
+    }
 
-    if (lowestBid) {
-      if (amount >= lowestBid.amount) {
-        return NextResponse.json({ error: `Your bid must be lower than the current lowest bid of ₹${lowestBid.amount.toLocaleString("en-IN")}.` }, { status: 400 });
-      }
-      if (auction.minDecrement > 0) {
-        const diff = lowestBid.amount - amount;
-        // Bid must be a multiple of minDecrement lower than current lowest
+    // Min decrement — applied on vendor's OWN previous lowest bid (individual basis)
+    if (auction.minDecrement > 0) {
+      const myLowest = await prisma.bid.findFirst({
+        where: { auctionId: id, vendorId: vendor.id }, orderBy: { amount: "asc" }
+      });
+
+      if (myLowest) {
+        // Vendor already has a bid — new bid must be multiple of minDecrement below their own lowest
+        const diff = myLowest.amount - amount;
+        if (diff <= 0) {
+          return NextResponse.json({ error: `New bid must be lower than your current bid of ₹${myLowest.amount.toLocaleString("en-IN")}.` }, { status: 400 });
+        }
         if (diff < auction.minDecrement) {
-          return NextResponse.json({ error: `Bid must be at least ₹${auction.minDecrement.toLocaleString("en-IN")} lower than current lowest bid of ₹${lowestBid.amount.toLocaleString("en-IN")}.` }, { status: 400 });
+          return NextResponse.json({ error: `You must reduce your bid by at least ₹${auction.minDecrement.toLocaleString("en-IN")} from your current bid of ₹${myLowest.amount.toLocaleString("en-IN")}.` }, { status: 400 });
         }
         if (Math.round(diff * 100) % Math.round(auction.minDecrement * 100) !== 0) {
-          const validBids = [1,2,3].map(n => (lowestBid.amount - n * auction.minDecrement).toLocaleString("en-IN"));
-          return NextResponse.json({ error: `Bid must be in multiples of ₹${auction.minDecrement.toLocaleString("en-IN")} below current lowest. Valid bids: ₹${validBids.join(", ₹")}...` }, { status: 400 });
+          const validBids = [1,2,3].map(n => (myLowest.amount - n * auction.minDecrement).toLocaleString("en-IN"));
+          return NextResponse.json({ error: `Bid must be in multiples of ₹${auction.minDecrement.toLocaleString("en-IN")} below your bid. Valid: ₹${validBids.join(", ₹")}` }, { status: 400 });
         }
       }
+      // First bid by this vendor — no individual decrement restriction
     }
 
-    // Check if vendor already has a lower or equal bid
-    const myLowest = await prisma.bid.findFirst({ where: { auctionId: id, vendorId: vendor.id }, orderBy: { amount: "asc" } });
-    if (myLowest && amount >= myLowest.amount) {
-      return NextResponse.json({ error: `You already have a bid of ₹${myLowest.amount.toLocaleString("en-IN")}. New bid must be lower.` }, { status: 400 });
-    }
-
-    // Auto-extend: if bid placed within last autoExtendMins minutes, extend end time
+    // Auto-extend
     let newEndTime = auction.endTime;
     if (auction.autoExtendMins > 0) {
       const minsLeft = (auction.endTime.getTime() - now.getTime()) / 60000;
@@ -78,7 +80,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       }
     }
 
-    // Create bid
     const bid = await prisma.bid.create({
       data: { auctionId: id, vendorId: vendor.id, amount, note: note || null },
       include: { vendor: { select: { companyName: true } } },
