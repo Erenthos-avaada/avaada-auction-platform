@@ -41,23 +41,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Invalid bid amount." }, { status: 400 });
     }
 
-    // Rule 1: New bid must ALWAYS be lower than the global lowest (regardless of who placed it)
-    const globalLowest = await prisma.bid.findFirst({
-      where: { auctionId: id }, orderBy: { amount: "asc" }
-    });
-    if (globalLowest && amount >= globalLowest.amount) {
-      return NextResponse.json({
-        error: `Your bid must be lower than the current lowest bid in the auction.`
-      }, { status: 400 });
-    }
-
-    // Rule 2: Min decrement — applied ONLY against this vendor's OWN previous lowest bid
+    // Get vendor's own previous lowest bid
     const myLowest = await prisma.bid.findFirst({
-      where: { auctionId: id, vendorId: vendor.id }, orderBy: { amount: "asc" }
+      where: { auctionId: id, vendorId: vendor.id },
+      orderBy: { amount: "asc" }
     });
 
     if (myLowest) {
-      // Vendor has bid before — must reduce by multiples of minDecrement from own bid
+      // Vendor has bid before — validate against THEIR OWN previous bid only
       const diff = myLowest.amount - amount;
 
       if (diff <= 0) {
@@ -72,12 +63,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             error: `You must reduce your bid by at least ₹${auction.minDecrement.toLocaleString("en-IN")} from your current bid of ₹${myLowest.amount.toLocaleString("en-IN")}.`
           }, { status: 400 });
         }
-        // Check it is an exact multiple
         const remainder = Math.round(diff * 100) % Math.round(auction.minDecrement * 100);
         if (remainder !== 0) {
           const validBids = [1, 2, 3]
             .map(n => myLowest.amount - n * auction.minDecrement)
-            .filter(v => v > 0 && (!globalLowest || v < globalLowest.amount))
+            .filter(v => v > 0)
             .map(v => `₹${v.toLocaleString("en-IN")}`);
           return NextResponse.json({
             error: `Bid must be in multiples of ₹${auction.minDecrement.toLocaleString("en-IN")} below your bid of ₹${myLowest.amount.toLocaleString("en-IN")}.${validBids.length ? ` Valid: ${validBids.join(", ")}` : ""}`
@@ -85,9 +75,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         }
       }
     }
-    // If vendor has NO previous bid — no decrement restriction, any amount below global lowest is fine
+    // First bid from this vendor — no restrictions, any positive amount accepted
 
-    // Auto-extend: if bid placed within last autoExtendMins, extend end time
+    // Auto-extend
     let newEndTime = auction.endTime;
     if (auction.autoExtendMins > 0) {
       const minsLeft = (auction.endTime.getTime() - now.getTime()) / 60000;
@@ -104,7 +94,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     return NextResponse.json({
       bid,
-      extended:   newEndTime.getTime() !== auction.endTime.getTime(),
+      extended:  newEndTime.getTime() !== auction.endTime.getTime(),
       newEndTime,
     }, { status: 201 });
 
