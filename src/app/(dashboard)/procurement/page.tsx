@@ -57,7 +57,7 @@ export default async function ProcurementDashboard() {
                     <td>{a.auctionType === "ITEM_RATE" ? "Item-Rate" : "Lumpsum"}</td>
                     <td><span className={`badge badge-${a.status.toLowerCase()}`}>{a.status}</span></td>
                     <td>{a._count.bids}</td>
-                    <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.78rem" }}>{new Date(a.endTime).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</td>
+                    <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.78rem" }}>{new Date(a.endTime).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" , timeZone: "Asia/Kolkata"})}</td>
                   </tr>
                 ))}
               </tbody>

@@ -49,7 +49,7 @@ export default async function MyBidsPage() {
                     <td style={{ fontFamily: "'DM Mono',monospace", fontWeight: 700, color: "var(--accent)" }}>₹{b.amount.toLocaleString("en-IN")}</td>
                     <td style={{ textAlign: "center" }}>{bids.filter((x: any) => x.auctionId === b.auctionId).length}</td>
                     <td><span className={`badge badge-${b.auction.status.toLowerCase()}`}>{b.auction.status}</span></td>
-                    <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.75rem" }}>{new Date(b.auction.endTime).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</td>
+                    <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.75rem" }}>{new Date(b.auction.endTime).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" , timeZone: "Asia/Kolkata"})}</td>
                     <td><Link href={`/vendor/auctions/${b.auctionId}`} style={{ fontSize: "0.78rem", color: "var(--accent)", textDecoration: "none" }}>View →</Link></td>
                   </tr>
                 ))}

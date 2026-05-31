@@ -62,7 +62,7 @@ export default async function AuctionsPage({ searchParams }: { searchParams: Pro
                     <td style={{ fontSize: "0.8rem", color: "var(--text2)", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.itemDescription || "—"}</td>
                     <td><span className={`badge badge-${a.status.toLowerCase()}`}>{a.status}</span></td>
                     <td style={{ textAlign: "center" }}>{a._count.bids}</td>
-                    <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.75rem" }}>{new Date(a.endTime).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</td>
+                    <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.75rem" }}>{new Date(a.endTime).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" , timeZone: "Asia/Kolkata"})}</td>
                     <td><Link href={`/procurement/auctions/${a.id}`} style={{ fontSize: "0.78rem", color: "var(--accent)", textDecoration: "none" }}>View →</Link></td>
                   </tr>
                 ))}

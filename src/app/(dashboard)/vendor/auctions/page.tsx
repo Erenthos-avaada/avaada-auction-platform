@@ -53,7 +53,7 @@ export default async function VendorAuctionsPage() {
                     <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.78rem" }}>{inv.auction.itemDescription || "—"}</td>
                     <td><span className={`badge badge-${inv.auction.status.toLowerCase()}`}>{inv.auction.status}</span></td>
                     <td style={{ textAlign: "center" }}>{inv.auction._count.bids}</td>
-                    <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.75rem" }}>{new Date(inv.auction.endTime).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</td>
+                    <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.75rem" }}>{new Date(inv.auction.endTime).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" , timeZone: "Asia/Kolkata"})}</td>
                     <td>
                       {inv.auction.status === "ACTIVE"
                         ? <Link href={`/vendor/auctions/${inv.auction.id}`} className="btn btn-primary" style={{ fontSize: "0.75rem", padding: "6px 12px" }}>Bid Now →</Link>

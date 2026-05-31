@@ -161,7 +161,7 @@ export default function AuctionDetailClient({ auction: initial, initialBids, ven
                         <td style={{ fontFamily: "'DM Mono',monospace", fontWeight: 700, color: i === 0 ? "var(--accent)" : "var(--text3)" }}>#{i + 1}</td>
                         <td style={{ fontWeight: i === 0 ? 600 : 400, color: i === 0 ? "var(--text)" : "var(--text2)" }}>{b.vendor.companyName}</td>
                         <td style={{ fontFamily: "'DM Mono',monospace", fontWeight: 700, color: i === 0 ? "var(--accent)" : "var(--text)" }}>{fmt(b.amount)}</td>
-                        <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.72rem", color: "var(--text3)" }}>{new Date(b.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</td>
+                        <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.72rem", color: "var(--text3)" }}>{new Date(b.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" , timeZone: "Asia/Kolkata"})}</td>
                       </tr>
                     ))}
                   </tbody>

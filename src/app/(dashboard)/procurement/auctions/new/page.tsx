@@ -37,14 +37,11 @@ const ItemRow = memo(function ItemRow({ item, index, canRemove, onChange, onRemo
   );
 });
 
-// Build a datetime string in LOCAL timezone (avoids UTC offset issues)
+// Return datetime as plain local string — no timezone conversion
+// The server stores this directly using new Date() which treats it as local
 function buildLocalDateTime(date: string, time: string): string {
   if (!date || !time) return "";
-  // Returns ISO string adjusted for local timezone offset
-  const local = new Date(`${date}T${time}:00`);
-  const offset = local.getTimezoneOffset(); // minutes behind UTC
-  const adjusted = new Date(local.getTime() - offset * 60000);
-  return adjusted.toISOString();
+  return `${date}T${time}:00`;
 }
 
 const DateTimePicker = memo(function DateTimePicker({

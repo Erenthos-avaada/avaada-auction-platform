@@ -167,7 +167,7 @@ export default function VendorBidClient({ auction: initial, initialBids, myBids:
                     <tr key={b.id} style={{ background: i === 0 ? "var(--accent-bg)" : undefined }}>
                       <td style={{ fontFamily: "'DM Mono',monospace", fontWeight: 700, color: i === 0 ? "var(--accent)" : "var(--text)" }}>{fmt(b.amount)}</td>
                       <td style={{ fontSize: "0.78rem" }}>{b.note || "—"}</td>
-                      <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.72rem", color: "var(--text3)" }}>{new Date(b.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</td>
+                      <td style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.72rem", color: "var(--text3)" }}>{new Date(b.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" , timeZone: "Asia/Kolkata"})}</td>
                     </tr>
                   ))}
                 </tbody>
